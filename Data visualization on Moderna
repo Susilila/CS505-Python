@@ -1,0 +1,41 @@
+def main():
+    import pandas as pd
+    print(pd.__version__)
+    import numpy as np
+    import matplotlib
+    import matplotlib.pyplot as plt
+    print("Matplotlib version:", matplotlib.__version__)
+
+    data=pd.read_csv("Moderna.csv")             ## data were saved in local directory 
+    data= data.drop_duplicates()                ## dropping duplicates
+    print(data.columns)                         ## printing columns 
+    data.columns = data.columns.str.strip()      # making sure that the name of columns are accurate
+    print(data.columns[1])                       # this is index weekly variables
+
+    # convert to datetime
+    data[data.columns[1]] = pd.to_datetime(data[data.columns[1]])
+
+    # grouped data
+    grouped= data.groupby(data.columns[1])[[data.columns[2], data.columns[3]]].sum().sort_index()
+    print(grouped)
+
+    # plot both allocations together
+    x = np.arange(len(grouped.index))
+    width = 0.20
+    plt.bar(x - width/2, grouped[data.columns[2]], width, color = "blue", label = "1st Dose Allocations")
+    plt.bar(x + width/2, grouped[data.columns[3]], width, color = "green", label = "2nd Dose Allocations")
+
+    plt.title("Moderna 1st and 2nd Dose Allocations Over Time")
+    plt.xlabel("Week of Allocations")
+    plt.xticks(x, grouped.index.strftime("%m %d %Y"), rotation = 90)
+    plt.ylabel("Allocated Doses")
+    plt.legend()
+
+    # showing the figures
+    plt.tight_layout()
+    plt.savefig("moderna_plot.png")
+    print("Saved plot to moderna_plot.png")
+    #plt.show()
+
+if __name__ == "__main__":
+    main()        
