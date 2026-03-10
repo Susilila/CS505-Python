@@ -1,0 +1,101 @@
+# bitmapheader   
+
+class bitmapheaders:
+    def __init__ (self, width, height):
+        self.width = width
+        self.height = height 
+    
+    def make_headers(self):
+        ba = bytearray()
+    
+    # adding signature 2 bytes
+        ba += b"BM"
+    # adding padding 
+        padding = 0 
+        row_bytes = (self.width * 3) % 4 
+        if row_bytes != 0:
+            padding = 4- row_bytes
+    # adding size 
+        size =54 +(self.width *3 + padding) * self.height 
+        ba += size.to_bytes(4, "little")
+    # adding reserved 4 bytes 
+        ba += int(0).to_bytes(4, "little")
+    # offset to array
+        ba += int(54).to_bytes(4, "little")
+         
+    ### info header
+    # adding info header 40 byte
+        ba += int(40).to_bytes(4, "little")
+    # adding width, and height 
+        ba += self.width.to_bytes(4, "little")
+        ba += self.height.to_bytes(4, "little")
+    # adding planes, and bits per pixel each being 2 bytes
+        ba += int(1).to_bytes(2, "little")
+        ba += int(24).to_bytes(2, "little")
+    # compression is 0 and BMP size is 0
+        ba += int(0).to_bytes(4, "little")
+        ba += int(0).to_bytes(4, "little")
+    # horizontal and vertical resolutions 
+        hres = vres = 96 
+        ba += hres.to_bytes(4, "little")
+        ba += vres.to_bytes(4, "little")
+    # Colors and colors set to be 0 
+        ba += int(0).to_bytes(4, "little")
+        ba += int(0).to_bytes(4, "little")
+    
+        return bytes(ba)
+
+# bitmapfile
+class bitmapfile:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height 
+        
+        self.pixels =[]                   # creating pixel arrays 
+        for row in range(self.height):
+            for col in range(self.width):
+                self.pixels.append([0, 0, 0])
+
+    def set_pixel(self, row, col, pixel):
+        loc = row * self.width + col 
+        self.pixels[loc][0] = pixel[2] 
+        self.pixels[loc][1] = pixel[1] 
+        self.pixels[loc][2] = pixel[0]
+
+    def get_pixel(self, row, col):
+        loc= row * self.width + col
+        return self.pixels[loc]
+
+    def write(self, file_name):
+        bmpfile = open(file_name, "wb")  
+
+        padding =0               # same padding to adjust the byte sizes
+        if (self.width *3) % 4 != 0:
+            padding = 4- ((self.width *3) % 4)     
+
+        headers = bitmapheaders(self.width, self.height)
+        bmpfile.write(headers.make_headers())
+        
+        for row in range(self.height-1, -1, -1):
+            for col in range(self.width):
+                px= self.get_pixel(row, col)
+                bmpfile.write(bytes(px))
+            
+            bmpfile.write(bytes(padding))
+
+        bmpfile.close()
+    
+def main():
+        width = 255
+        height =255
+        bmf= bitmapfile(width, height)
+
+        for row in range(height):
+            for col in range(width):
+                px= [row % 256, row % 256, col % 256]
+                bmf.set_pixel(row, col, px)
+            
+        bmf.write("test.bmp")
+
+if __name__ == "__main__":
+    main()
