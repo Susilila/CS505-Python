@@ -1,2 +1,2 @@
 # CS505-Python
-Course project in CS505
+First python project on calculators! 
